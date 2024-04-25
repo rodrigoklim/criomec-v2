@@ -1,0 +1,39 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+  font-family: blacker-extrabold;
+  src: local('blacker-extrabold'),
+  url('../assets/fonts/Blacker-Extrabold.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: poppins-regular;
+  src: local('poppins-regular'),
+  url('../assets/fonts/Poppins-Regular.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: poppins-semibold;
+  src: local('poppins-semibold'),
+  url('../assets/fonts/Poppins-SemiBold.ttf') format('truetype');
+}
+
+.blacker-extrabold {
+  font-family: 'blacker-extrabold', 'serif';
+}
+
+.poppins-regular {
+  font-family: 'poppins-regular', 'serif';
+}
+
+.poppins-semibold {
+  font-family: 'poppins-semibold', 'serif';
+}
+
+html, body {
+  @apply bg-gray-100 h-[100%];
+
+  font-family: 'poppins-regular', 'serif';
+}

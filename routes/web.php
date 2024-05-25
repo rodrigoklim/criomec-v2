@@ -57,6 +57,14 @@ Route::middleware('auth')->group(function () {
     Route::get('messages', function () {
       return Inertia::render('Customers/AutomaticMessages');
     });
+
+    Route::get('address/search', [\App\Http\Controllers\CustomerController::class, 'predictAddress'])->name(
+        'customers.address.search'
+    );
+
+    Route::get('address/geolocation', [\App\Http\Controllers\CustomerController::class, 'searchGeolocation'])->name(
+        'customers.address.search'
+    );
   });
 
   Route::get('document-validation', [DocumentController::class, 'validateDocument'])->name(

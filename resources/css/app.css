@@ -37,3 +37,11 @@ html, body {
 
   font-family: 'poppins-regular', 'serif';
 }
+
+.fade-enter-active, .fade-leave-active {
+  transition: opacity 0.5s ease-in-out;
+}
+
+.fade-enter, .fade-leave-to {
+  opacity: 0;
+}

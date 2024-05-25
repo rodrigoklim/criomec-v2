@@ -16,6 +16,7 @@ const emit = defineEmits<{
   (e: "change-visibility"): void;
   (e: "error-message", message: string): void;
   (e: "blur"): void;
+  (e: "focus"): void;
 }>();
 
 const model = defineModel<string | undefined>({ required: true });
@@ -80,6 +81,7 @@ watch(model, () => {
       :class="[{ 'ring-2 ring-red-400': hasError }, props.customClass]"
       :type="props.showPassword ? 'text' : props.type"
       @blur="onBlur"
+      @focus="emit('focus')"
     />
     <input
       v-else
@@ -89,6 +91,7 @@ watch(model, () => {
       class="border-gray-300 w-full focus:ring-primary focus:ring-2 focus:border-opacity-0 rounded-md shadow-sm"
       :class="[{ 'ring-2 ring-red-400': hasError }, props.customClass]"
       @blur="onBlur"
+      @focus="emit('focus')"
     />
     <span
       v-if="type === 'password'"

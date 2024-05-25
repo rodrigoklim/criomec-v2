@@ -13,10 +13,10 @@ export const createCustomerMenu = [
   },
   {
     slug: "address",
-    label: "Endereço",
+    label: "Endereços",
   },
   {
-    slug: "payment-method",
+    slug: "payment",
     label: "Dados de pagamento",
   },
 ];

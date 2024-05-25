@@ -13,8 +13,17 @@ export type PageProps<T extends Record<string, unknown> = Record<string, unknown
   };
 };
 
-export type GenericResponse<T> = {
-  data: T;
+export type GenericResponse = {
+  data: ResponseData;
   message: string;
   status: number;
 };
+
+export type ResponseData<T> = {
+  data: T | T[];
+};
+
+export interface GenericObject {
+  label: string;
+  value: string;
+}

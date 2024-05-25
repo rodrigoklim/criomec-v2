@@ -12,11 +12,14 @@ const props = withDefaults(
   }>(),
   {
     disabled: false,
+    width: "",
+    color: "primary",
+    label: "",
   },
 );
 
 const buttonClasses = computed(() => {
-  let classes = ["primary-btn"];
+  let classes = [];
   if (props.width) {
     classes.push(props.width);
   }
@@ -28,7 +31,7 @@ const buttonClasses = computed(() => {
   }
 
   if (props.disabled) {
-    classes = ["pointer-events-none bg-gray-500 text-black"];
+    classes = ["pointer-events-none bg-gray-500 text-white"];
   }
 
   return classes.join(" ");
@@ -47,10 +50,10 @@ const buttonClasses = computed(() => {
         ></path>
       </svg>
     </span>
-    <span v-else>
+    <div v-else>
       <div v-if="label">{{ label }}</div>
       <slot v-else />
-    </span>
+    </div>
   </button>
 </template>
 

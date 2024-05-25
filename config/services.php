@@ -47,4 +47,10 @@ return [
         'key' => env('SINTEGRA_API_KEY'),
         'url' => env('SINTEGRA_API_URL'),
     ],
+
+    'google_maps' => [
+        'key' => env('API_GOOGLE_MAPS_KEY'),
+        'place_url' => env('API_GOOGLE_MAPS_PLACE_ENDPOINT'),
+        'geocode_url' => env('API_GOOGLE_MAPS_GEOCODE_ENDPOINT'),
+    ],
 ];

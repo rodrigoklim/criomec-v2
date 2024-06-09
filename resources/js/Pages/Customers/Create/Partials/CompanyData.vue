@@ -3,17 +3,12 @@ import CreatePage from "@/Pages/Customers/Create/CreatePage.vue";
 import NaturalPerson from "@/Pages/Customers/Create/Partials/Components/NaturalPerson.vue";
 import { GenericErrorResponse } from "@/types";
 import { CustomerPf, CustomerPj } from "@/types/customer";
-import { onMounted } from "vue";
 import LegalEntity from "../Partials/Components/LegalEntity.vue";
 
 const props = defineProps<{
   customer: CustomerPf | CustomerPj;
   error: GenericErrorResponse;
 }>();
-
-onMounted(() => {
-  console.log(props.customer);
-});
 </script>
 
 <template>

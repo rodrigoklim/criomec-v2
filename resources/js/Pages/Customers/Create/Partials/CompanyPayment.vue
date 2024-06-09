@@ -32,20 +32,7 @@ const props = defineProps<{
 }>();
 
 const mapPaymentResponse = (paymentResponse: CompanyPaymentResponse) => {
-  console.log(paymentResponse);
   switch (paymentResponse.type) {
-    // case "installments":
-    //   response.parameters = paymentResponse.parameters;
-    //   response.details = {
-    //     bank: paymentResponse.details.bank,
-    //     installments: paymentResponse.details.installments,
-    //     contract_number: paymentResponse.details.contract_number,
-    //     due_date: paymentResponse.details.due_date,
-    //   };
-    //   break;
-    // case "cash":
-    //   response.parameters = paymentResponse.parameters;
-    //   break;
     case "cash":
     case "upfront":
       payment.value.type = paymentResponse.type;

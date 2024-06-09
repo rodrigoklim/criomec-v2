@@ -4,28 +4,37 @@ export interface CustomerResponse {
 }
 
 export interface CustomerPj {
+  id?: string;
   document: string;
-  corporateName: string;
-  companyName?: string;
+  corporate_name: string;
+  company_name?: string;
   ie?: string;
-  mainActivity?: string;
+  main_activity?: string;
   status: string;
   address: Address;
   type: string;
+  email?: string;
+  withNF: boolean;
+  contacts: Contact[];
 }
 
 export interface CustomerPf {
+  id?: string;
   document: string;
   name: string;
   birthdate: string;
   type: string;
-  mainActivity?: string;
-  companyName?: string;
+  main_activity?: string;
+  company_name?: string;
   address?: Address;
   status: string;
+  email?: string;
+  withNF: boolean;
+  contacts: Contact[];
 }
 
 export interface Address {
+  id?: string;
   formatted_address?: string;
   street?: string;
   number?: string;
@@ -39,6 +48,7 @@ export interface Address {
   lat?: number;
   lng?: number;
   placeId?: string;
+  customer_id?: string;
 }
 
 export interface AddressOption {
@@ -54,6 +64,7 @@ export interface AddressTerms {
 
 export interface Contact {
   id?: number;
+  customer_id: string;
   name: string;
   position: string;
   phone: string;
@@ -70,6 +81,8 @@ export interface GeolocationResponse {
   address_components: AddressOptions[];
   geometry: Geolocation;
   place_id: string;
+  lat: number;
+  lng: number;
 }
 
 export interface Geolocation {
@@ -85,14 +98,40 @@ export interface AddressOptions {
 }
 
 export interface Payment {
+  id?: string;
   type: string;
   parameters?: string;
   details?: PaymentDetails;
+  customer_id: string;
 }
 
 export interface PaymentDetails {
   bank?: string;
   installments?: number[];
   contract_number?: string;
+  commitment_number?: string;
   due_date?: string;
+}
+
+export interface CompanyDataRequest {
+  document: string;
+  corporate_name?: string;
+  company_name: string;
+  ie?: string;
+  main_activity: string;
+  status: string;
+  type: string;
+  email: string;
+}
+
+export interface CompanyPaymentResponse {
+  id: string;
+  type: string;
+  parameters: string;
+  bank_account?: string;
+  commitment_number?: string;
+  contract_number?: string;
+  due_date?: string;
+  installments?: string;
+  customer_id: string;
 }

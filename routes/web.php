@@ -51,8 +51,24 @@ Route::middleware('auth')->group(function () {
     })->name('customers.index');
 
     Route::get('new', function () {
-      return Inertia::render('Customers/Create/CreatePage');
+      return Inertia::render('Customers/Create/Partials/Components/DocumentValidation', ['step' => 'document']);
     })->name('customers.create');
+
+    Route::get('{document}/{type}/company-data', [\App\Http\Controllers\CustomerController::class, 'show'])->name(
+        'customers.company_data'
+    );
+
+    Route::get('{id}/contact', [\App\Http\Controllers\CustomerController::class, 'showContact'])->name(
+        'customers.contact'
+    );
+
+    Route::get('{id}/address', [\App\Http\Controllers\CustomerController::class, 'showAddresses'])->name(
+        'customers.address'
+    );
+
+    Route::get('{id}/payment', [\App\Http\Controllers\CustomerController::class, 'showPaymentInfo'])->name(
+        'customers.payment'
+    );
 
     Route::get('messages', function () {
       return Inertia::render('Customers/AutomaticMessages');
@@ -63,13 +79,37 @@ Route::middleware('auth')->group(function () {
     );
 
     Route::get('address/geolocation', [\App\Http\Controllers\CustomerController::class, 'searchGeolocation'])->name(
-        'customers.address.search'
+        'customers.address.geolocation'
+    );
+
+    Route::post('document-validation', [\App\Http\Controllers\DocumentController::class, 'validateDocument'])->name(
+        'document.validation'
+    );
+
+    Route::post('company-data', [\App\Http\Controllers\CustomerController::class, 'storeCompanyData'])->name(
+        'company.data'
+    );
+
+    Route::post('/{id}/contact', [\App\Http\Controllers\CustomerController::class, 'storeContact'])->name(
+        'customers.contact'
+    );
+
+    Route::delete('/{id}/contact/', [\App\Http\Controllers\CustomerController::class, 'deleteContact'])->name(
+        'customers.contact'
+    );
+
+    Route::post('/{id}/address', [\App\Http\Controllers\CustomerController::class, 'storeAddress'])->name(
+        'customers.address'
+    );
+
+    Route::delete('/{id}/address/', [\App\Http\Controllers\CustomerController::class, 'deleteAddress'])->name(
+        'customers.address'
+    );
+
+    Route::post('/{id}/payment', [\App\Http\Controllers\CustomerController::class, 'storePayment'])->name(
+        'customers.payment'
     );
   });
-
-  Route::get('document-validation', [DocumentController::class, 'validateDocument'])->name(
-      'document.validation'
-  );
 });
 
 require __DIR__ . '/auth.php';

@@ -10,6 +10,8 @@ const props = defineProps<{
   showPassword?: boolean;
   rules?: "required" | "email" | "phone" | "length";
   unmaskedValue?: boolean;
+  error?: boolean;
+  autocomplete?: string;
 }>();
 
 const emit = defineEmits<{
@@ -66,6 +68,14 @@ watch(model, () => {
   hasError.value = false;
   emit("error-message", "");
 });
+
+watch(
+  () => props.error,
+  (value) => {
+    hasError.value = value;
+  },
+  { deep: true },
+);
 </script>
 
 <template>
@@ -80,6 +90,7 @@ watch(model, () => {
       input-class="flex w-full border-gray-300 rounded-md shadow-sm"
       :class="[{ 'ring-2 ring-red-400': hasError }, props.customClass]"
       :type="props.showPassword ? 'text' : props.type"
+      :autocomplete="autocomplete"
       @blur="onBlur"
       @focus="emit('focus')"
     />
@@ -87,9 +98,10 @@ watch(model, () => {
       v-else
       ref="input"
       v-model="model"
-      :type="props.showPassword ? 'text' : props.type"
       class="border-gray-300 w-full focus:ring-primary focus:ring-2 focus:border-opacity-0 rounded-md shadow-sm"
       :class="[{ 'ring-2 ring-red-400': hasError }, props.customClass]"
+      :autocomplete="autocomplete"
+      :type="props.showPassword ? 'text' : props.type"
       @blur="onBlur"
       @focus="emit('focus')"
     />

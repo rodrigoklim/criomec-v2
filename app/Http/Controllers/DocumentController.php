@@ -5,96 +5,72 @@ namespace App\Http\Controllers;
 use App\Exceptions\ExceptionManager;
 use App\Helpers\Response;
 use App\Http\Services\DocumentValidationServices;
+use App\Models\CustomerPf;
+use App\Models\CustomerPj;
+use App\Rules\ValidateCompanyDocumentRule;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 
 class DocumentController extends Controller
 {
   public function validateDocument(Request $request)
   {
-    try {
-      $customer = [];
-      $validatedDocument = preg_replace('/\D/', '', $request->document);
+    $request->validate([
+        'document' => [
+            'required',
+            Rule::unique(CustomerPj::class, 'document'),
+            Rule::unique(CustomerPf::class, 'document'),
+            new ValidateCompanyDocumentRule(),
+        ],
+    ], [
+        'document.unique' => 'Cliente já cadastrado',
+    ]);
 
-      if (strlen($validatedDocument) === 11 && $this->validateCpf($validatedDocument) && $request->birthdate) {
-        $response = DocumentValidationServices::validateCpf([
-            'cpf' => $validatedDocument,
-            'birthdate' => $request->birthdate,
-        ]);
+    $customer = [];
+    $validatedDocument = preg_replace('/\D/', '', $request->document);
 
-        $customer = [
-            'name' => $response->nome,
-            'document' => $validatedDocument,
-            'birthdate' => $response->data_nascimento,
-            'status' => $response->situacao_cadastral,
-            'type' => 'pf',
-        ];
+    if ($request->birthdate) {
+      $response = DocumentValidationServices::validateCpf([
+          'cpf' => $validatedDocument,
+          'birthdate' => $request->birthdate,
+      ]);
 
-        return Response::getJsonResponse('Documento válido', $customer, 200);
+      if (!$response->nome) {
+        throw ValidationException::withMessages(
+            ['document' => 'CPF ou Data de nascimento inválidos', 'birthdate' => 'CPF ou Data de nascimento inválidos']
+        );
       }
 
-      if (strlen($validatedDocument) === 14 && $this->validateCnpj($validatedDocument)) {
-        $response = DocumentValidationServices::validateCnpj($validatedDocument);
-        $customer = [
-            'corporateName' => $response['company']['name'],
-            'document' => $response['taxId'],
-            'ie' => $response['registrations'][0]['number'],
-            'address' => $response['address'],
-            'status' => $response['status']['text'],
-            'mainActivity' => $response['mainActivity']['text'],
-            'type' => 'pj',
-        ];
+      $customer = [
+          'name' => $response->nome,
+          'document' => $validatedDocument,
+          'birthdate' => $response->data_nascimento,
+          'status' => $response->situacao_cadastral,
+          'type' => 'pf',
+          'withNF' => true,
+      ];
 
-        return Response::getJsonResponse('Documento válido', $customer, 200);
-      }
-
-      return Response::getJsonResponse('Documento inválido', [], 400);
-    } catch (\Exception $e) {
-      return ExceptionManager::handleException($e, func_get_args());
-    }
-  }
-
-  private function validateCpf($document)
-  {
-    for ($i = 0, $j = 10, $soma = 0; $i < 9; $i++, $j--) {
-      $soma += $document[$i] * $j;
+      return redirect()
+          ->route('customers.company_data', ['id' => $customer['document'], 'type' => $customer['type']])
+          ->with('customer', $customer);
     }
 
-    $resto = $soma % 11;
+    $response = DocumentValidationServices::validateCnpj($validatedDocument);
+    $customer = [
+        'corporate_name' => $response['company']['name'],
+        'document' => $response['taxId'],
+        'ie' => $response['registrations'][0]['number'],
+        'address' => $response['address'],
+        'status' => $response['status']['text'],
+        'main_activity' => $response['mainActivity']['text'],
+        'type' => 'pj',
+        'withNF' => true,
+    ];
 
-    if ($document[9] != ($resto < 2 ? 0 : 11 - $resto)) {
-      return false;
-    }
-
-    for ($i = 0, $j = 11, $soma = 0; $i < 10; $i++, $j--) {
-      $soma += $document[$i] * $j;
-    }
-
-    $resto = $soma % 11;
-
-    return $document[10] == ($resto < 2 ? 0 : 11 - $resto);
-  }
-
-  private function validateCnpj($document)
-  {
-    for ($i = 0, $j = 5, $soma = 0; $i < 12; $i++) {
-      $soma += $document[$i] * $j;
-      $j = ($j == 2) ? 9 : $j - 1;
-    }
-
-    $resto = $soma % 11;
-
-    if ($document[12] != ($resto < 2 ? 0 : 11 - $resto)) {
-      return false;
-    }
-
-    for ($i = 0, $j = 6, $soma = 0; $i < 13; $i++) {
-      $soma += $document[$i] * $j;
-      $j = ($j == 2) ? 9 : $j - 1;
-    }
-
-    $resto = $soma % 11;
-
-    return $document[13] == ($resto < 2 ? 0 : 11 - $resto);
+    return redirect()
+        ->route('customers.company_data', ['id' => $customer['document'], 'type' => $customer['type']])
+        ->with('customer', $customer);
   }
 }

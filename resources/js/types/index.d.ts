@@ -27,3 +27,7 @@ export interface GenericObject {
   label: string;
   value: string;
 }
+
+export interface GenericErrorResponse {
+  [key: string]: string;
+}

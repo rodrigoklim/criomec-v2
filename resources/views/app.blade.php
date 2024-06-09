@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <title inertia>{{ config('app.name', 'Laravel') }}</title>
+    <title>{{ config('app.name', 'Laravel') }}</title>
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
@@ -20,6 +20,9 @@
   <body class="font-sans antialiased">
     @inertia
     <script src="https://js.stripe.com/v3/"></script>
-        
+
+    <script
+        async src="https://maps.googleapis.com/maps/api/js?key={{env('VITE_API_GOOGLE_MAPS_KEY')}}&libraries=places"
+    ></script>
   </body>
 </html>

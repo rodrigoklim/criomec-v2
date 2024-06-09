@@ -21,6 +21,7 @@ return new class extends Migration {
       $table->string('company_name')->nullable();
       $table->string('main_activity');
       $table->string('email');
+      $table->boolean('withNF')->default(false);
     });
   }
 

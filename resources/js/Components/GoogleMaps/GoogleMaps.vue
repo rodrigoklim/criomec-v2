@@ -34,7 +34,6 @@ const newMarker = (lat: number, lng: number) => {
   marker.value = new google.maps.Marker({
     position: { lat, lng },
     map: map.value,
-    icon: image.value,
   });
 };
 

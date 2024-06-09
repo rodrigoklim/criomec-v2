@@ -1,24 +1,58 @@
 <script lang="ts" setup>
 import Form from "@/Layouts/FormLayout.vue";
 import { createCustomerMenu } from "@/Pages/Customers/Create/create-customer";
-import CompanyAddresses from "@/Pages/Customers/Create/Partials/CompanyAddresses.vue";
-import CompanyContacts from "@/Pages/Customers/Create/Partials/CompanyContacts.vue";
-import CompanyData from "@/Pages/Customers/Create/Partials/CompanyData.vue";
-import CompanyPayment from "@/Pages/Customers/Create/Partials/CompanyPayment.vue";
-import CompanyProducts from "@/Pages/Customers/Create/Partials/CompanyProducts.vue";
-import { useCustomerStore } from "@/Pages/Customers/Create/Store/customer-store";
-import { Head } from "@inertiajs/vue3";
-import { computed, onMounted, ref } from "vue";
+import { CustomerPf, CustomerPj } from "@/types/customer";
+import { Link, Head } from "@inertiajs/vue3";
+import map from "lodash/map";
+import { computed, ref } from "vue";
 
-const customerStore = useCustomerStore();
+const props = withDefaults(
+  defineProps<{
+    customer: CustomerPf | CustomerPj;
+    step: string;
+  }>(),
+  {
+    step: "company-data",
+  },
+);
 
-const selected = ref("test");
 const loading = ref(false);
 const showTooltip = ref(false);
-const step = computed(() => customerStore.step);
 
-onMounted(() => {
-  selected.value = window.location.pathname.split("/")[3];
+const setHref = (step: string) => {
+  switch (step) {
+    case "company-data":
+      return route("customers.company_data", {
+        document: typeof props.customer !== "undefined" ? props.customer.document : "",
+        type: typeof props.customer !== "undefined" ? props.customer.type : "",
+      });
+    case "contact":
+      return route("customers.contact", { id: typeof props.customer !== "undefined" ? props.customer.id : "" });
+    case "address":
+      return route("customers.address", { id: typeof props.customer !== "undefined" ? props.customer.id : "" });
+    case "payment":
+      return route("customers.payment", { id: typeof props.customer !== "undefined" ? props.customer.id : "" });
+    default:
+      return route("customers.create", { step: "company-products" });
+  }
+};
+
+const customerMenu = computed(() => {
+  return map(createCustomerMenu, (menuItem) => {
+    return {
+      ...menuItem,
+      customClass: itemStatus(menuItem.slug),
+      href: setHref(menuItem.slug),
+    };
+  });
+
+  function itemStatus(slug: string) {
+    if (!props.customer || (!props.customer.id && slug !== "company-data")) {
+      return "disabled";
+    }
+
+    return props.step === slug ? "selected" : "not-selected";
+  }
 });
 </script>
 
@@ -32,15 +66,15 @@ onMounted(() => {
         <div class="w-1/4">
           <div class="flex flex-col border-2 border-primary p-6 rounded-2xl mr-4 bg-white">
             <div class="font-semibold text-lg">Cadastro de cliente</div>
-            <div
-              v-for="item in createCustomerMenu"
+            <Link
+              v-for="item in customerMenu"
               :key="item.slug"
-              :class="step === item.slug ? 'selected' : 'not-selected'"
+              :class="item.customClass"
               class="guide-list"
-              @click="customerStore.setTab(item.slug)"
+              :href="setHref(item.slug)"
             >
               {{ item.label }}
-            </div>
+            </Link>
           </div>
         </div>
         <div class="w-3/4">
@@ -56,11 +90,8 @@ onMounted(() => {
                 Tudo certo, já pode adicionar o seu cliente!
               </span>
             </transition>
-            <company-data v-if="step === 'company-data'" />
-            <company-contacts v-if="step === 'contact'" />
-            <company-products v-if="step === 'products'" />
-            <company-addresses v-if="step === 'address'" />
-            <company-payment v-if="step === 'payment'" />
+
+            <slot />
           </div>
         </div>
       </div>
@@ -79,6 +110,10 @@ onMounted(() => {
 
 .guide-list {
   @apply transition-all duration-150 ease-in-out mt-4 cursor-pointer rounded-lg p-2;
+}
+
+.disabled {
+  @apply cursor-not-allowed opacity-50;
 }
 
 .tooltip {

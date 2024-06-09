@@ -1,14 +1,17 @@
 import { GenericResponse } from "@/types";
-import { CustomerPf, CustomerPj } from "@/types/customer";
 import axios from "axios";
 
 export const documentValidation = async (document: string, birthdate: string = "") => {
-  const { data } = <GenericResponse<CustomerPj | CustomerPf>>await axios.get(route("document.validation"), {
-    params: {
-      document: document,
-      birthdate: birthdate,
-    },
-  });
+  try {
+    const { data } = <GenericResponse>await axios.get(route("document.validation"), {
+      params: {
+        document: document,
+        birthdate: birthdate,
+      },
+    });
 
-  return data;
+    return data;
+  } catch (error) {
+    console.log(error);
+  }
 };

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import SecondaryButton from "@/Components/SecondaryButton.vue";
 import TextInput from "@/Components/TextInput.vue";
+import CreatePage from "@/Pages/Customers/Create/CreatePage.vue";
 import {
   bankAccounts,
   paymentTerms,
@@ -8,10 +9,10 @@ import {
   installmentsPayment,
 } from "@/Pages/Customers/Create/Partials/Components/company-payment";
 import GenericRadioGroup from "@/Components/GenericRadioGroup.vue";
-import { useCustomerStore } from "@/Pages/Customers/Create/Store/customer-store";
 import { GenericObject } from "@/types";
-import { Payment, PaymentDetails } from "@/types/customer";
-import { computed, ref, watch } from "vue";
+import { CompanyPaymentResponse, CustomerPf, CustomerPj, Payment, PaymentDetails } from "@/types/customer";
+import { useForm } from "@inertiajs/vue3";
+import { computed, onMounted, ref, watch } from "vue";
 
 interface PaymentParameters {
   upfront: GenericObject[];
@@ -24,9 +25,59 @@ interface PaymentTitles {
   installments: string;
 }
 
+const props = defineProps<{
+  customer: CustomerPf | CustomerPj;
+  step: string;
+  customerPayment?: CompanyPaymentResponse;
+}>();
+
+const mapPaymentResponse = (paymentResponse: CompanyPaymentResponse) => {
+  console.log(paymentResponse);
+  switch (paymentResponse.type) {
+    // case "installments":
+    //   response.parameters = paymentResponse.parameters;
+    //   response.details = {
+    //     bank: paymentResponse.details.bank,
+    //     installments: paymentResponse.details.installments,
+    //     contract_number: paymentResponse.details.contract_number,
+    //     due_date: paymentResponse.details.due_date,
+    //   };
+    //   break;
+    // case "cash":
+    //   response.parameters = paymentResponse.parameters;
+    //   break;
+    case "cash":
+    case "upfront":
+      payment.value.type = paymentResponse.type;
+      paymentTerm.value = paymentResponse.type;
+      payment.value.parameters =
+        paymentResponse.type === "upfront" ? paymentResponse.bank_account : paymentResponse.parameters;
+      break;
+
+    default:
+      payment.value.type = paymentResponse.type;
+      paymentTerm.value = paymentResponse.type!;
+      payment.value.parameters = paymentResponse.parameters;
+      if (!payment.value.details) {
+        return;
+      }
+
+      if (paymentResponse.installments) {
+        payment.value.details.installments = paymentResponse.installments?.split(",").map(Number);
+      }
+
+      paymentBank.value = paymentResponse.bank_account;
+      paymentContractNumber.value = paymentResponse.contract_number;
+      paymentDueDate.value = paymentResponse.due_date;
+      paymentCommitmentNumber.value = paymentResponse.commitment_number;
+      break;
+  }
+};
+
 const payment = ref<Payment>({
   parameters: "",
   type: "",
+  customer_id: props.customer.id!,
   details: {
     bank: "",
     installments: [],
@@ -35,8 +86,7 @@ const payment = ref<Payment>({
   } as PaymentDetails,
 });
 
-const customerStore = useCustomerStore();
-const paymentTerm = ref<keyof PaymentParameters | "">("");
+const paymentTerm = ref<keyof PaymentParameters>();
 const paymentParameters = ref({
   upfront: bankAccounts as GenericObject[],
   cash: cashPayment as GenericObject[],
@@ -51,10 +101,11 @@ const paymentTitles = ref<PaymentTitles>({
 
 const paymentTermDays = ref<string>();
 const paymentContractNumber = ref<string>();
+const paymentCommitmentNumber = ref<string>();
 const paymentBank = ref<string>();
 const paymentDueDate = ref<string>();
 
-const updatePaymentInfo = (paymentTerm: string) => {
+const updatePaymentInfo = () => {
   if (payment.value.details) {
     payment.value.details.installments = [];
   }
@@ -63,12 +114,14 @@ const updatePaymentInfo = (paymentTerm: string) => {
   paymentContractNumber.value = "";
   paymentBank.value = "";
   paymentDueDate.value = "";
-
-  payment.value.parameters = paymentTerm;
 };
 
 watch(paymentTerm, (paymentType) => {
-  payment.value.type = paymentType;
+  if (paymentType === payment.value.type) {
+    return;
+  }
+
+  payment.value.type = paymentType!;
   payment.value.parameters = "";
   paymentTermDays.value = "";
   paymentContractNumber.value = "";
@@ -140,24 +193,39 @@ const canSavePayment = computed(() => {
   return true;
 });
 
+const loading = ref(false);
 const savePaymentData = () => {
   if (!canSavePayment.value) {
     return;
   }
 
+  payment.value.id = props.customerPayment?.id;
   payment.value.details = {
     bank: paymentBank.value,
     installments: payment.value.details?.installments,
     contract_number: paymentContractNumber.value,
+    commitment_number: paymentCommitmentNumber.value,
     due_date: paymentDueDate.value,
   };
 
-  customerStore.setPaymentMethod(payment.value);
+  loading.value = true;
+
+  const form = useForm(payment.value);
+
+  form.post(route("customers.payment", { id: props.customer.id }));
+  loading.value = false;
 };
+
+onMounted(() => {
+  if (!props.customerPayment) {
+    return;
+  }
+  mapPaymentResponse(props.customerPayment);
+});
 </script>
 
 <template>
-  <div>
+  <CreatePage :customer="props.customer" :step="props.step">
     <div class="flex flex-col w-full">
       <div class="font-semibold text-lg">Dados de pagamento</div>
       <div class="grid grid-cols-4 gap-4 w-full">
@@ -172,6 +240,7 @@ const savePaymentData = () => {
         </div>
         <GenericRadioGroup
           v-if="paymentTerm"
+          v-model="payment.parameters"
           :parameters="paymentParameters[paymentTerm]"
           :title="paymentTitles[paymentTerm]"
           @select="updatePaymentInfo"
@@ -190,19 +259,32 @@ const savePaymentData = () => {
                 @keydown="onKeyDown"
               />
             </div>
-            <div v-if="payment.parameters === 'tender-payment'" class="mt-4">
-              <label for="contract_number" class="text-sm">Número do contrato</label>
-              <TextInput id="contract_number" v-model="paymentContractNumber" type="text" label="Número do contrato" />
+            <div v-if="payment.parameters === 'tender-payment'" class="mt-4 flex flex-col w-full">
+              <div>
+                <label for="contract_number" class="text-sm">Número do contrato</label>
+                <TextInput
+                  id="contract_number"
+                  v-model="paymentContractNumber"
+                  type="text"
+                  label="Número do contrato"
+                />
+              </div>
+              <div class="mt-4">
+                <label for="contract_number" class="text-sm">Número do empenho</label>
+                <TextInput
+                  id="contract_number"
+                  v-model="paymentCommitmentNumber"
+                  type="text"
+                  label="Número do contrato"
+                />
+              </div>
             </div>
             <div
               v-if="payment.parameters && ['tender-payment', 'bank-transfer'].includes(payment.parameters)"
               class="mt-4"
             >
               <span class="text-sm">Conta para crédito</span>
-              <GenericRadioGroup
-                :parameters="paymentParameters['upfront']"
-                @select="(value) => (paymentBank = value)"
-              />
+              <GenericRadioGroup v-model="paymentBank" :parameters="paymentParameters['upfront']" />
             </div>
             <div v-if="payment.parameters === 'monthly-closing'" class="mt-4">
               <label for="due_date" class="text-sm">Dia de pagamento</label>
@@ -228,14 +310,14 @@ const savePaymentData = () => {
         <secondary-button
           :class="{ 'bg-primary text-white hover:opacity-70': canSavePayment }"
           :disabled="!canSavePayment"
-          label="Prosseguir"
+          label="Salvar"
           type="button"
           width="w-32"
           @click="savePaymentData"
         />
       </div>
     </div>
-  </div>
+  </CreatePage>
 </template>
 
 <style scoped></style>

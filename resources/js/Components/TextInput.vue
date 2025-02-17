@@ -12,6 +12,7 @@ const props = defineProps<{
   unmaskedValue?: boolean;
   error?: boolean;
   autocomplete?: string;
+  fillMask?: string;
 }>();
 
 const emit = defineEmits<{
@@ -91,6 +92,7 @@ watch(
       :class="[{ 'ring-2 ring-red-400': hasError }, props.customClass]"
       :type="props.showPassword ? 'text' : props.type"
       :autocomplete="autocomplete"
+      :fill-mask="fillMask"
       @blur="onBlur"
       @focus="emit('focus')"
     />

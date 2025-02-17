@@ -36,9 +36,9 @@ export const menu = [
     path: "/vehicles",
   },
   {
-    label: "Products",
+    label: "Produtos",
     icon: "propane_tank",
-    path: "/vehicles",
+    path: "/products",
   },
   {
     label: "Equipe",

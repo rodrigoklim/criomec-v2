@@ -31,3 +31,17 @@ export interface GenericObject {
 export interface GenericErrorResponse {
   [key: string]: string;
 }
+
+export interface GenericPaginatedResponse<T> {
+  current_page: number;
+  data: T[];
+  from: number;
+  to: number;
+  last_page: number;
+  links: {
+    first: string;
+    last: string;
+    prev: string | null;
+    next: string | null;
+  }[];
+}

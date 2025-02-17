@@ -29,6 +29,7 @@ const selectedValue = computed({
         <input
           id="payment_term"
           v-model="selectedValue"
+          class="checked:bg-primary"
           type="radio"
           :value="parameter.value"
           @change="() => emit('select', parameter.value)"

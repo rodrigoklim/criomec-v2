@@ -15,10 +15,12 @@ return new class extends Migration {
       $table->timestamps();
       $table->string('tenant_id');
       $table->string('name');
-      $table->string('csosn')->default(0102);
+      $table->string('csosn')->default('0102');
+      $table->string('cest')->nullable();
       $table->string('ncm')->nullable();
       $table->string('sku')->nullable();
       $table->boolean('is_active')->default(false);
+      $table->enum('operation', ['sell', 'rent', 'loan_for_use', 'other'])->default('sell');
     });
   }
 

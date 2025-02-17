@@ -1,19 +1,9 @@
 <script lang="ts" setup>
-import { GoogleImage } from "@/Components/GoogleMaps/google-maps";
-import { Loader } from "@googlemaps/js-api-loader";
 import { ref, onMounted, watch } from "vue";
 
 const emit = defineEmits<{
   (event: "position", id: { lat: number; lng: number }): void;
 }>();
-
-const image = ref<GoogleImage>();
-
-const loader = new Loader({
-  apiKey: import.meta.env.VITE_API_GOOGLE_MAPS_KEY,
-  version: "weekly",
-  libraries: ["places"],
-});
 
 const map = ref<google.maps.Map>();
 const mapRef = ref<HTMLElement>();
@@ -45,14 +35,6 @@ watch(props, (newProps) => {
 });
 
 onMounted(async () => {
-  await loader.load();
-  image.value = {
-    url: "/images/place_icon.svg",
-    scaledSize: new google.maps.Size(60, 60),
-    origin: new google.maps.Point(0, 0),
-    anchor: new google.maps.Point(30, 30),
-  };
-
   if (!mapRef.value) {
     return;
   }
@@ -83,5 +65,3 @@ onMounted(async () => {
 <template>
   <div ref="mapRef" class="rounded-xl w-full h-full" />
 </template>
-
-<style></style>

@@ -6,6 +6,7 @@ const props = defineProps<{
   backRoute: string;
   title: string;
   disabled?: boolean;
+  isEdit?: boolean;
 }>();
 
 const goBack = () => {
@@ -29,7 +30,7 @@ const emit = defineEmits<{
             type="button"
             :loading="props.loading"
             :disabled="props.disabled"
-            label="Adicionar"
+            :label="isEdit ? 'Salvar' : 'Adicionar'"
             @click="emit('submit')"
           />
         </div>

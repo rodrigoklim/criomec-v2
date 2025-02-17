@@ -110,6 +110,9 @@ Route::middleware('auth')->group(function () {
         'customers.payment'
     );
   });
+
+  Route::resource('products', \App\Http\Controllers\ProductController::class);
+  Route::get('products/{ncm}/ncm', [\App\Http\Controllers\ProductController::class, 'getByNcm'])->name('products.ncm');
 });
 
 require __DIR__ . '/auth.php';

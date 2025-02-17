@@ -21,6 +21,8 @@ jobs:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_KEY }}
+          use_insecure_cipher: true
+          cipher: aes256-cbc
           script: |
             TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
             BACKUP_DIR="/homolog.cadapp/versions/${TIMESTAMP}"

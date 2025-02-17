@@ -15,32 +15,12 @@ jobs:
         uses: actions/checkout@v4
 
       -
-        name: 📂 Backup Database Before Deployment
-        uses: appleboy/ssh-action@v0.1.10
-        with:
-          host: ${{ secrets.HOST }}  # the server IP or domain
-          username: ${{ secrets.SSH_USERNAME }}  # the username stored in secrets
-          password: ${{ secrets.SSH_PASSWORD }}  # the password stored in secrets
-          port: 22  # default SSH port
-          cipher: aes256-ctr  # Ensure a compatible cipher is used
-          use_insecure_cipher: true
-          script: |
-            TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
-            BACKUP_DB_PATH="/homolog.cadapp/versions/db_backup_${TIMESTAMP}.sql"
-
-            echo "⚡ Creating database backup..."
-            mysqldump -u ${{ secrets.DB_USER }} -p${{ secrets.DB_PASSWORD }} ${{ secrets.DB_NAME }} > $BACKUP_DB_PATH
-
-            echo "✅ Database backup saved: $BACKUP_DB_PATH"
-
-      -
         name: 📂 Backup Current Files
         uses: appleboy/ssh-action@v0.1.10
         with:
-          host: ${{ secrets.HOST }}  # the server IP or domain
-          username: ${{ secrets.SSH_USERNAME }}  # the username stored in secrets
-          password: ${{ secrets.SSH_PASSWORD }}  # the password stored in secrets
-          port: 22  # default SSH port
+          host: ${{ secrets.deploy_server }}
+          username: ${{ secrets.deploy_username }}
+          key: ${{ secrets.deploy_ssh_key }}
           script: |
             TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
             BACKUP_DIR="/homolog.cadapp/versions/${TIMESTAMP}"
@@ -50,76 +30,3 @@ jobs:
             cp -r /homolog.cadapp.com.br/* $BACKUP_DIR/
 
             echo "✅ Backup created at: $BACKUP_DIR"
-
-      -
-        name: 📂 Sync files
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
-        with:
-          server: ${{ secrets.deploy_server }}
-          username: ${{ secrets.deploy_username }}
-          password: ${{ secrets.deploy_password }}
-          server-dir: /homolog.cadapp.com.br
-
-      -
-        name: 🖥️ Run Composer on Server
-        uses: appleboy/ssh-action@v0.1.10
-        with:
-          host: ${{ secrets.deploy_server }}
-          username: ${{ secrets.deploy_username }}
-          key: ${{ secrets.DEPLOY_SSH_KEY }}
-          script: |
-            cd /homolog.cadapp.com.br
-            composer install --no-dev --optimize-autoloader --no-interaction
-            echo "✅ Composer install completed"
-
-      -
-        name: 🛠️ Run Migrations
-        uses: appleboy/ssh-action@v0.1.10
-        id: migrate
-        continue-on-error: true
-        with:
-          host: ${{ secrets.deploy_server }}
-          username: ${{ secrets.deploy_username }}
-          key: ${{ secrets.DEPLOY_SSH_KEY }}
-          script: |
-            cd /homolog.cadapp.com.br
-            php artisan migrate --force
-            echo "✅ Database migrations executed successfully"
-
-      -
-        name: ❌ Rollback on Failure
-        if: steps.migrate.outcome == 'failure'
-        uses: appleboy/ssh-action@v0.1.10
-        with:
-          host: ${{ secrets.deploy_server }}
-          username: ${{ secrets.deploy_username }}
-          key: ${{ secrets.DEPLOY_SSH_KEY }}
-          script: |
-            echo "🚨 Migration failed! Rolling back to previous version..."
-
-            TIMESTAMP=$(ls -t /homolog.cadapp/versions | head -n 1)
-            BACKUP_DIR="/homolog.cadapp/versions/$TIMESTAMP"
-
-            if [ -d "$BACKUP_DIR" ]; then
-              rm -rf /homolog.cadapp.com.br/*
-              cp -r $BACKUP_DIR/* /homolog.cadapp.com.br/
-              echo "✅ Rolled back to previous version: $TIMESTAMP"
-            else
-              echo "⚠️ No valid backup found, rollback skipped!"
-            fi
-
-            echo "⚡ Restoring database backup..."
-            mysql -u ${{ secrets.DB_USER }} -p${{ secrets.DB_PASSWORD }} ${{ secrets.DB_NAME }} < "/homolog.cadapp/versions/db_backup_${TIMESTAMP}.sql"
-            echo "✅ Database restored!"
-
-      -
-        name: ♻️ Restart Queue Workers
-        uses: appleboy/ssh-action@v0.1.10
-        with:
-          host: ${{ secrets.deploy_server }}
-          username: ${{ secrets.deploy_username }}
-          key: ${{ secrets.DEPLOY_SSH_KEY }}
-          script: |
-            cd /homolog.cadapp.com.br
-            php artisan queue:restart
-            echo "✅ Queue workers restarted"

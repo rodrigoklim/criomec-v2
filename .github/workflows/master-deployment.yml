@@ -22,6 +22,8 @@ jobs:
           username: ${{ secrets.SSH_USERNAME }}  # the username stored in secrets
           password: ${{ secrets.SSH_PASSWORD }}  # the password stored in secrets
           port: 22  # default SSH port
+          cipher: aes256-ctr  # Ensure a compatible cipher is used
+          use_insecure_cipher: true
           script: |
             TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
             BACKUP_DB_PATH="/homolog.cadapp/versions/db_backup_${TIMESTAMP}.sql"

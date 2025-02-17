@@ -25,10 +25,10 @@ jobs:
           cipher: aes256-cbc
           script: |
             TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
-            BACKUP_DIR="/app/dev-criomec-v2-releases/versions/${TIMESTAMP}"
+            BACKUP_DIR="app/dev-criomec-v2-releases/versions/${TIMESTAMP}"
 
             echo "⚡ Creating backup of current deployment..."
             mkdir -p $BACKUP_DIR
-            cp -r /app/dev-criomec-v2/* $BACKUP_DIR/
+            cp -r app/dev-criomec-v2/* $BACKUP_DIR/
 
             echo "✅ Backup created at: $BACKUP_DIR"

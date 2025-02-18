@@ -71,7 +71,7 @@ jobs:
           cipher: aes256-cbc
           script: |
             cd  app/dev-criomec-v2/
-            source ~/.bashrc && composer install --no-dev --optimize-autoloader --no-interaction
+            /opt/cpanel/composer/bin/composer install --no-dev --optimize-autoloader --no-interaction
             echo "✅ Composer install completed"
 
       -

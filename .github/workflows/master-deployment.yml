@@ -115,7 +115,7 @@ jobs:
             fi
 
             echo "⚡ Restoring database backup..."
-            mysql -u ${{ secrets.DB_USER }} -p${{ secrets.DB_PASSWORD }} ${{ secrets.DB_NAME }} < "/homolog.cadapp/versions/db_backup_${TIMESTAMP}.sql"
+            mysql -u ${{ secrets.DB_USER }} -p${{ secrets.DB_PASSWORD }} ${{ secrets.DB_NAME }} < " /app/dev-criomec-v2/versions/db_backup_${TIMESTAMP}.sql"
             echo "✅ Database restored!"
 
       -

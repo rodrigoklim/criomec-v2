@@ -58,7 +58,7 @@ jobs:
           server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          server-dir: app/dev-criomec-v2/
+          server-dir: dev-criomec-v2/
 
       -
         name: 🖥️ Run Composer on Server

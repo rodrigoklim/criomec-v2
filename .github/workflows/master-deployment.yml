@@ -70,7 +70,7 @@ jobs:
           use_insecure_cipher: true
           cipher: aes256-cbc
           script: |
-            cd /homolog.cadapp.com.br
+            cd  /app/dev-criomec-v2/
             composer install --no-dev --optimize-autoloader --no-interaction
             echo "✅ Composer install completed"
 
@@ -104,7 +104,7 @@ jobs:
             echo "🚨 Migration failed! Rolling back to previous version..."
 
             TIMESTAMP=$(ls -t /app/dev-criomec-v2/versions | head -n 1)
-            BACKUP_DIR="/app/dev-criomec-v2//versions/$TIMESTAMP"
+            BACKUP_DIR="/app/dev-criomec-v2/versions/$TIMESTAMP"
 
             if [ -d "$BACKUP_DIR" ]; then
               rm -rf /app/dev-criomec-v2/*
@@ -128,6 +128,6 @@ jobs:
           use_insecure_cipher: true
           cipher: aes256-cbc
           script: |
-            cd /homolog.cadapp.com.br
+            cd  /app/dev-criomec-v2/
             php artisan queue:restart
             echo "✅ Queue workers restarted"

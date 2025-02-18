@@ -34,6 +34,24 @@ jobs:
             echo "✅ Backup created at: $BACKUP_DIR"
 
       -
+        name: 📂 Backup Database Before Deployment
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          use_insecure_cipher: true
+          cipher: aes256-cbc
+          script: |
+            TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
+            BACKUP_DB_PATH="app/dev-criomec-v2-releases/versions/db_backup_${TIMESTAMP}.sql"
+
+            echo "⚡ Creating database backup..."
+            mysqldump -u ${{ secrets.DB_USERNAME }} -p${{ secrets.DB_PASSWORD }} ${{ secrets.DB_NAME }} > $BACKUP_DB_PATH
+
+            echo "✅ Database backup saved: $BACKUP_DB_PATH"
+
+      -
         name: 📂 Sync files
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:

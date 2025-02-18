@@ -70,7 +70,7 @@ jobs:
           use_insecure_cipher: true
           cipher: aes256-cbc
           script: |
-            cd  /app/dev-criomec-v2/
+            cd  app/dev-criomec-v2/
             composer install --no-dev --optimize-autoloader --no-interaction
             echo "✅ Composer install completed"
 
@@ -86,7 +86,7 @@ jobs:
           use_insecure_cipher: true
           cipher: aes256-cbc
           script: |
-            cd /app/dev-criomec-v2/
+            cd app/dev-criomec-v2/
             php artisan migrate --force
             echo "✅ Database migrations executed successfully"
 
@@ -103,19 +103,19 @@ jobs:
           script: |
             echo "🚨 Migration failed! Rolling back to previous version..."
 
-            TIMESTAMP=$(ls -t /app/dev-criomec-v2/versions | head -n 1)
-            BACKUP_DIR="/app/dev-criomec-v2/versions/$TIMESTAMP"
+            TIMESTAMP=$(ls -t app/dev-criomec-v2/versions | head -n 1)
+            BACKUP_DIR="app/dev-criomec-v2/versions/$TIMESTAMP"
 
             if [ -d "$BACKUP_DIR" ]; then
-              rm -rf /app/dev-criomec-v2/*
-              cp -r $BACKUP_DIR/* /app/dev-criomec-v2/
+              rm -rf app/dev-criomec-v2/*
+              cp -r $BACKUP_DIR/* app/dev-criomec-v2/
               echo "✅ Rolled back to previous version: $TIMESTAMP"
             else
               echo "⚠️ No valid backup found, rollback skipped!"
             fi
 
             echo "⚡ Restoring database backup..."
-            mysql -u ${{ secrets.DB_USER }} -p${{ secrets.DB_PASSWORD }} ${{ secrets.DB_NAME }} < " /app/dev-criomec-v2/versions/db_backup_${TIMESTAMP}.sql"
+            mysql -u ${{ secrets.DB_USER }} -p${{ secrets.DB_PASSWORD }} ${{ secrets.DB_NAME }} < " app/dev-criomec-v2/versions/db_backup_${TIMESTAMP}.sql"
             echo "✅ Database restored!"
 
       -
@@ -128,6 +128,6 @@ jobs:
           use_insecure_cipher: true
           cipher: aes256-cbc
           script: |
-            cd  /app/dev-criomec-v2/
+            cd  app/dev-criomec-v2/
             php artisan queue:restart
             echo "✅ Queue workers restarted"

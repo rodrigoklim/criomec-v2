@@ -59,3 +59,75 @@ jobs:
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
           server-dir: app/dev-criomec-v2/
+
+      -
+        name: 🖥️ Run Composer on Server
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          use_insecure_cipher: true
+          cipher: aes256-cbc
+          script: |
+            cd /homolog.cadapp.com.br
+            composer install --no-dev --optimize-autoloader --no-interaction
+            echo "✅ Composer install completed"
+
+      -
+        name: 🛠️ Run Migrations
+        uses: appleboy/ssh-action@v0.1.10
+        id: migrate
+        continue-on-error: true
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          use_insecure_cipher: true
+          cipher: aes256-cbc
+          script: |
+            cd /app/dev-criomec-v2/
+            php artisan migrate --force
+            echo "✅ Database migrations executed successfully"
+
+      -
+        name: ❌ Rollback on Failure
+        if: steps.migrate.outcome == 'failure'
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          use_insecure_cipher: true
+          cipher: aes256-cbc
+          script: |
+            echo "🚨 Migration failed! Rolling back to previous version..."
+
+            TIMESTAMP=$(ls -t /app/dev-criomec-v2/versions | head -n 1)
+            BACKUP_DIR="/app/dev-criomec-v2//versions/$TIMESTAMP"
+
+            if [ -d "$BACKUP_DIR" ]; then
+              rm -rf /app/dev-criomec-v2/*
+              cp -r $BACKUP_DIR/* /app/dev-criomec-v2/
+              echo "✅ Rolled back to previous version: $TIMESTAMP"
+            else
+              echo "⚠️ No valid backup found, rollback skipped!"
+            fi
+
+            echo "⚡ Restoring database backup..."
+            mysql -u ${{ secrets.DB_USER }} -p${{ secrets.DB_PASSWORD }} ${{ secrets.DB_NAME }} < "/homolog.cadapp/versions/db_backup_${TIMESTAMP}.sql"
+            echo "✅ Database restored!"
+
+      -
+        name: ♻️ Restart Queue Workers
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          use_insecure_cipher: true
+          cipher: aes256-cbc
+          script: |
+            cd /homolog.cadapp.com.br
+            php artisan queue:restart
+            echo "✅ Queue workers restarted"

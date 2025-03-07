@@ -75,6 +75,23 @@ jobs:
             echo "✅ Composer install completed"
 
       -
+        name: 📄 Upload .env file
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          use_insecure_cipher: true
+          cipher: aes256-cbc
+          script: |
+            echo "⚡ Copying .env file to the application root..."
+            mkdir -p /home/youruser/env_files/
+            echo "${{ secrets.ENV_FILE_CONTENTS }}" > /home/youruser/env_files/dev-criomec-v2.env
+            cp /home/youruser/env_files/dev-criomec-v2.env app/dev-criomec-v2/.env
+            chmod 600 app/dev-criomec-v2/.env
+            echo "✅ .env file copied successfully!"
+
+      -
         name: 🛠️ Run Migrations
         uses: appleboy/ssh-action@v0.1.10
         id: migrate
